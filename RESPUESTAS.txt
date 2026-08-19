@@ -1,0 +1,34 @@
+RESPUESTAS - Laboratorio Programación Concurrente
+Parrado & Hernandez
+
+=== Parte I ===
+
+Pregunta 1: ¿A qué se debe el alto consumo de CPU y cuál clase es responsable?
+El problema estaba en la clase Consumer. Tenía un while(true) que revisaba
+constantemente si la cola tenía elementos, sin parar nunca. Eso hace que el hilo
+esté quemando CPU todo el tiempo aunque no haya nada que consumir, básicamente
+girando en falso. Eso se llama busy-wait y es lo peor que puedes hacer en
+concurrencia.
+
+=== Parte III ===
+
+Pregunta punto 10: ¿Eliminar inmortales muertos puede crear condición de carrera?
+
+Sí, claramente. Si varios hilos están peleando al mismo tiempo y uno intenta
+remover a un inmortal muerto de la lista mientras otro hilo está leyendo esa
+misma lista para buscar a su próximo rival, se puede presentar una
+ConcurrentModificationException o peor, un comportamiento inesperado donde
+un hilo pelea contra alguien que ya fue removido o accede a un índice que
+ya no existe.
+
+Cuando probamos con muchos inmortales (100, 1000), el problema se hace más
+evidente porque hay más hilos compitiendo por la lista al mismo tiempo, y las
+probabilidades de que dos hilos choquen sobre la misma posición de la lista
+aumentan bastante.
+
+La solución que usamos fue cambiar la lista de LinkedList a CopyOnWriteArrayList,
+que es una colección concurrente no bloqueante. Lo que hace es que cada vez que
+se modifica la lista (por ejemplo al remover un muerto), crea una copia nueva
+internamente, entonces los hilos que están leyendo en ese momento no se ven
+afectados. Así evitamos sincronizar el acceso a la lista sin volver todo
+secuencial, que era justo lo que pedía el enunciado.
